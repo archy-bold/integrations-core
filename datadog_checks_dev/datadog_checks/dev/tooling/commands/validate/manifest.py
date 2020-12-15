@@ -21,6 +21,8 @@ METRIC_TO_CHECK_WHITELIST = {
     'riakcs.bucket_list_pool.workers',  # RiakCS 2.1 metric, but metadata.csv lists RiakCS 2.0 metrics only.
 }
 
+METRIC_TO_CHECK_REDIRECT = {'snmp_cisco': 'snmp'}
+
 
 def get_manifest_schema():
     return jsonschema.Draft7Validator(
@@ -466,7 +468,10 @@ def manifest(ctx, fix):
             if metric_to_check:
                 metrics_to_check = metric_to_check if isinstance(metric_to_check, list) else [metric_to_check]
                 for metric in metrics_to_check:
-                    if not is_metric_in_metadata_file(metric, check_name) and metric not in METRIC_TO_CHECK_WHITELIST:
+                    if (
+                        not is_metric_in_metadata_file(metric, METRIC_TO_CHECK_REDIRECT.get(check_name, check_name))
+                        and metric not in METRIC_TO_CHECK_WHITELIST
+                    ):
                         file_failures += 1
                         display_queue.append((echo_failure, f'  metric_to_check not in metadata.csv: {metric!r}'))
 
